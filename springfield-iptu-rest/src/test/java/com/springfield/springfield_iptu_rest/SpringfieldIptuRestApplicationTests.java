@@ -1,10 +1,10 @@
-package com.springfield.springfield_rest;
+package com.springfield.springfield_iptu_rest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SpringfieldrestApplicationTests {
+class SpringfieldIptuRestApplicationTests {
 
 	@Test
 	void contextLoads() {
