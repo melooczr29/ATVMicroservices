@@ -1,84 +1,88 @@
-# Projeto Cidade Springfield
+# Projeto Springfield - API de Serviços ao Cidadão
 
-Este projeto visa fornecer serviços online para os cidadãos de Springfield, permitindo o gerenciamento de dados e a autenticação de usuários através de uma API RESTful.
+![Java](https://img.shields.io/badge/Java-17-blue.svg)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.x-green.svg) <!-- Verifique a versão exata -->
+![H2 DB](https://img.shields.io/badge/Database-H2-lightgrey.svg)
+![State Machine](https://img.shields.io/badge/Spring-State%20Machine-blueviolet.svg)
+![Actuator](https://img.shields.io/badge/Spring-Actuator-green.svg)
+![OpenAPI](https://img.shields.io/badge/Docs-OpenAPI-informational.svg)
 
 ## Visão Geral
 
-O sistema consiste em dois microserviços principais:
+API RESTful para gerenciar Cidadãos, Usuários (autenticação e segurança), o fluxo de Solicitações de serviço (com State Machine) e expor métricas básicas para a cidade de Springfield. Utiliza banco de dados H2 em memória/arquivo.
 
-1.  **Gerenciamento de Cidadãos:** Permite listar, consultar, cadastrar e atualizar os dados dos cidadãos armazenados em um banco de dados H2 local.
-2.  **Autenticação de Usuários:** Oferece funcionalidades de cadastro, login, troca de senha, bloqueio/desbloqueio de usuário e validações de segurança para garantir a integridade do acesso.
+> **Microsserviço de IPTU Opcional:** Para funcionalidades de IPTU, um serviço separado (`Springfield-IPTU`) pode ser executado em conjunto. Consulte o repositório correspondente.
 
-## Estrutura do Projeto
+## Funcionalidades Implementadas
 
-O projeto é organizado da seguinte forma:
+*   **Gerenciamento de Cidadãos:** CRUD básico (Listar, Buscar, Cadastrar, Atualizar).
+*   **Autenticação de Usuários:** Cadastro, Login, Troca de Senha, Bloqueio por tentativas, Desbloqueio, Validação de senha expirada.
+*   **Fluxo de Solicitações:** Controle do ciclo de vida de solicitações (`SOLICITADO`, `AGUARDANDO_ANALISE`, `CONCLUIDO`) usando Spring State Machine, com histórico persistido.
+*   **Métricas:** Exposição do número total de usuários cadastrados via endpoint do Prometheus (`/actuator/prometheus`).
+*   **Documentação:** API documentada com OpenAPI (Swagger UI).
 
--   `Cidadao.java`: Define a entidade `Cidadao` que representa os dados de um cidadão.
--   `CidadaoController.java`: Controlador REST para o gerenciamento de cidadãos, com endpoints para as operações CRUD.
--   `CidadaoRepository.java`: Interface JPA para acesso e manipulação dos dados de cidadãos no banco de dados.
--   `CidadaoService.java`: Camada de serviço que encapsula a lógica de negócio relacionada aos cidadãos.
--   `Usuario.java`: Define a entidade `Usuario` para gerenciamento de autenticação.
--   `UsuarioController.java`: Controlador REST para as operações relacionadas à autenticação de usuários.
--   `UsuarioRepository.java`: Interface JPA para acesso e manipulação dos dados de usuários no banco de dados.
--   `UsuarioService.java`: Camada de serviço com a lógica de autenticação e segurança.
--    `SpringfieldrestApplication.java`: Classe principal do aplicativo.
+## Tecnologias Principais
 
-## Endpoints
-
-### Gerenciamento de Cidadãos (`/cidadaos`)
-
--   `GET /cidadaos`: Lista todos os cidadãos.
--   `GET /cidadaos/{id}`: Busca um cidadão pelo ID.
--   `POST /cidadaos`: Cadastra um novo cidadão.
--   `PUT /cidadaos/{id}`: Atualiza os dados de um cidadão existente.
--   `DELETE /cidadaos/{id}`: Deleta um cidadão.
-
-### Autenticação de Usuários (`/usuarios`)
-
--   `POST /usuarios`: Cadastra um novo usuário vinculado a um cidadão.
--   `GET /usuarios/{username}`: Busca um usuário pelo nome de usuário.
--   `POST /usuarios/login`: Realiza o login do usuário.
--   `PUT /usuarios/trocar-senha`: Permite a troca de senha do usuário.
--   `PUT /usuarios/desbloquear`: Desbloqueia um usuário bloqueado.
-
-## Dependências
-
-O projeto utiliza as seguintes dependências principais:
-
--   Spring Boot Starter Web
--   Spring Boot Starter Data JPA
--   H2 Database  (Banco de dados em memória)
-
-As dependências completas podem ser encontradas no arquivo `pom.xml`.
-
-## Configuração
-
-As configurações de conexão com o banco de dados SQL Server estão definidas no arquivo `application.properties` (ou `application.yml`).  É necessário configurar as seguintes propriedades:
-
--   `spring.datasource.url`: URL de conexão com o banco de dados.
--   `spring.datasource.username`: Nome de usuário do banco de dados.
--   `spring.datasource.password`: Senha do banco de dados (obtida conforme instruções na atividade do Canvas).
--  `spring.jpa.properties.hibernate.dialect`: Dialeto do Hibernate.
-
-## Requisitos
-
--   Java 17 ou superior
+-   Java 17
+-   Spring Boot 3.4.x
+-   Spring Data JPA
+-   Spring Web
+-   Spring State Machine Core
+-   Spring Boot Actuator
+-   Micrometer Prometheus Registry
+-   SpringDoc OpenAPI (Swagger UI)
+-   H2 Database
+-   Lombok
 -   Maven
--   IDE de desenvolvimento
+
+## Estrutura Simplificada
+
+Todas as classes Java (`Entidades`, `Repositories`, `Services`, `Controllers`, `Enums`, `Configs`) residem no pacote base `com.springfield.springfield_rest`.
+
+## Banco de Dados H2
+
+*   Utiliza banco H2 configurado para rodar em arquivo (`./database/h2db`).
+*   **Tabelas:** `CAD_CIDADAO`, `USUARIO`, `REGISTRO_FLUXO_SOLICITACAO`.
+*   **Console H2:** Acessível em `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:file:./database/h2db`, User: `sa`, sem senha) após iniciar a aplicação.
+*   O `ddl-auto=update` no `application.properties` pode criar/atualizar as tabelas. Scripts `database.sql` e `data.sql` podem conter definições e dados iniciais.
+
+## Endpoints Principais
+
+*(Porta Padrão: 8080)*
+
+### Cidadãos (`/cidadaos`)
+-   `GET /`
+-   `GET /{id}`
+-   `POST /`
+-   `PUT /{id}`
+-   `DELETE /{id}` *(Nota: O código original não valida existência antes de deletar)*
+
+### Usuários (`/usuarios`)
+-   `POST /`
+-   `POST /login?username=...&senha=...`
+-   `PUT /trocar-senha?username=...&novaSenha=...`
+-   `PUT /desbloquear?username=...`
+
+### Fluxo de Solicitações (`/solicitacao-api`)
+-   `POST /nova` (Body: `{ "cidadaoId": "...", "descricao": "..." }`)
+-   `POST /{demandaId}/executar` (Body: `{ "acao": "ANALISAR|CONCLUIR" }`)
+-   `GET /historico/{cidadaoId}`
+
+## Configuração Mínima
+
+*   Verifique o arquivo `src/main/resources/application.properties` para as configurações do banco H2 e Actuator.
 
 ## Como Executar
 
-1.  Clone este repositório.
-2.  Configure as propriedades de conexão com o banco de dados no arquivo `application.properties`.
-3.  Compile o projeto usando o Maven: `mvn clean install`
-4.  Execute a aplicação Spring Boot: `mvn spring-boot:run`
-5.  A API estará disponível em `http://localhost:8080` (ou a porta configurada).
+1.  Clone o repositório: `git clone <URL_DO_REPOSITORIO>`
+2.  Navegue até a pasta do projeto: `cd ATVMicroservices` (ou o nome correto)
+3.  Compile e execute usando Maven:
+    ```bash
+    mvn clean spring-boot:run
+    ```
+4.  A API estará disponível em `http://localhost:8080`.
 
-## Considerações de Segurança
-O microsserviço de autenticação implementa as seguintes medidas de segurança:
+## Documentação e Métricas
 
-*   **Bloqueio de Usuário:** Após 3 tentativas de login malsucedidas, a conta do usuário é bloqueada.
-*   **Expiração de Senha:**  Se um usuário não efetuar login por mais de 30 dias, será exigida a troca de senha no próximo acesso.
-*   **Cadastro Único:** Apenas um cadastro de usuário é permitido por ID de cidadão.
-*   **Troca de Senha:** Funcionalidade para o usuário alterar sua senha.
-*   **Desbloqueio:** Funcionalidade para desbloquear um usuário que teve sua conta bloqueada por tentativas de login.
+-   **Documentação OpenAPI (Swagger):** `http://localhost:8080/swagger-ui.html`
+-   **Métricas Prometheus:** `http://localhost:8080/actuator/prometheus` (Procure por `h2_springfield_usuarios_registrados`)
