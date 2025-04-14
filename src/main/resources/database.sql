@@ -1,0 +1,29 @@
+CREATE TABLE IF NOT EXISTS CAD_CIDADAO (
+    ID INTEGER PRIMARY KEY,
+    nome TEXT NOT NULL,
+    endereco TEXT NOT NULL,
+    bairro TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS USUARIO (
+    ID INTEGER PRIMARY KEY,
+    cidadao_id INTEGER UNIQUE,
+    username TEXT UNIQUE NOT NULL,
+    senha TEXT NOT NULL,
+    tentativas_falhas INTEGER DEFAULT 0,
+    ultima_alteracao_senha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    bloqueado BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (cidadao_id) REFERENCES CAD_CIDADAO(ID)
+);
+
+CREATE TABLE IF NOT EXISTS REGISTRO_FLUXO_SOLICITACAO (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    demanda_id BIGINT NOT NULL,
+    cidadao_id INTEGER NOT NULL,
+    descricao_solicitacao VARCHAR(500) NOT NULL,
+    estado_atual VARCHAR(50) NOT NULL,
+    data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cidadao_id) REFERENCES CAD_CIDADAO(ID) ON DELETE CASCADE,
+    INDEX idx_fluxo_demanda (demanda_id),
+    INDEX idx_fluxo_cidadao (cidadao_id)
+);
